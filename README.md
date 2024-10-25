@@ -1,5 +1,6 @@
 # Scaling up Masked Diffusion Models on Text
 
+[![arXiv](https://img.shields.io/badge/arXiv-2410.18514-red.svg)](https://arxiv.org/abs/2410.18514)
 [![deploy](https://img.shields.io/badge/Huggingface%20-SMDM%20-blue)](https://huggingface.co/nieshen/SMDM)
 
 We establish the first scaling law for Masked diffusion models (MDMs) in language modeling, demonstrating 
