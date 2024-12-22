@@ -3,16 +3,20 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2410.18514-red.svg)](https://arxiv.org/abs/2410.18514)
 [![deploy](https://img.shields.io/badge/Huggingface%20-SMDM%20-blue)](https://huggingface.co/nieshen/SMDM)
 
-We establish the first scaling law for Masked diffusion models (MDMs) in language modeling, demonstrating 
-a scaling rate comparable to autoregressive models (ARMs). Fully leveraging the probabilistic formulation 
-of MDMs, we propose a simple yet effective *unsupervised classifier-free guidance* that effectively 
-exploits large-scale unpaired data, boosting performance for conditional inference. In language understanding, 
-a 1.1B MDM shows competitive results, outperforming the larger 1.5B GPT-2 model on four out of eight zero-shot 
-benchmarks. In conditional generation, MDMs provide a flexible trade-off compared to ARMs utilizing KV-cache: 
-MDMs match the performance of ARMs while being 1.5 times faster. Moreover, MDMs address challenging tasks 
-for ARMs by effectively handling bidirectional reasoning and adapting to temporal shifts in data. Notably, 
-a 1.1B MDM breaks the *reverse curse* encountered by much larger ARMs with significantly more data and 
-computation, such as Llama (13B) and GPT-3 (175B).
+Masked diffusion models (MDMs) have shown promise in language modeling, yet their scalability and effectiveness in core 
+language tasks, such as text generation and language understanding, remain underexplored. This paper establishes the 
+first scaling law for MDMs, demonstrating a scaling rate comparable to autoregressive models (ARMs) and a relatively 
+small compute gap. Motivated by their scalability, we train a family of MDMs with up to 1.1 billion (B) parameters to 
+systematically evaluate their performance against ARMs of comparable or larger sizes. Fully leveraging the probabilistic 
+formulation of MDMs, we propose a simple yet effective *unsupervised classifier-free* guidance that effectively 
+exploits large-scale unpaired data, boosting performance for conditional inference. In language understanding, the 
+1.1B MDM outperforms the 1.1B TinyLlama model trained on the same data across four of eight zero-shot benchmarks. 
+Notably, it achieves competitive math reasoning ability with the 7B Llama-2 model on the GSM8K dataset. In text 
+generation, MDMs provide a flexible trade-off compared to ARMs utilizing KV-cache: MDMs match the performance of 
+ARMs while being 1.4 times faster or achieving higher quality than ARMs at a higher computational cost. Moreover, 
+MDMs address challenging tasks for ARMs by effectively handling bidirectional reasoning and adapting to temporal 
+shifts in data. Notably, a 1.1B MDM breaks the *reverse curse* encountered by much larger ARMs with significantly 
+more data and computation, such as 13B Llama-2 and 175B GPT-3.
 
 
 <div style="display: flex; justify-content: center; flex-wrap: wrap;">
@@ -94,6 +98,17 @@ lightning run model \
 ```
 
 ## Supervised fine-tuning
+### Math reasoning
+Please download the augmented training [data](https://github.com/da03/implicit_chain_of_thought/blob/main/data/gsm8k/train.txt) and
+put the `train.txt` file in `./data/gsm8k`.
+```angular2html
+lightning run model \
+    --node-rank=0  \
+    --accelerator=cuda \
+    --devices=8 \
+    --num-nodes=1 \
+    sft/finetune_mdm_gsm8k.py --model 1028 --pretrain_path models/mdm-1028M-3300e18-rsl-0.01-bs-1024.safetensors
+```
 
 ### Conditional generation
 Please download the [ShareGPT](https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/blob/main/ShareGPT_V3_unfiltered_cleaned_split_no_imsorry.json) dataset and put the json file in `./data`.
@@ -144,6 +159,15 @@ lm_eval --model hf \
     --device cuda:0
 ```
 
+#### TinyLlama
+We evaluate TinyLlama with 3.3e21 pre-training FLOPs.
+```angular2html
+lm_eval --model hf \
+    --model_args pretrained=TinyLlama/tinyLLaMA-v1.1-checkpoints,revision=step-300000,dtype="bfloat16" \
+    --tasks hellaswag,openbookqa,arc_easy,boolq,piqa,social_iqa,race,lambada_standard \
+    --device cuda
+```
+
 #### ARMs pretrained on the SlimPajama dataset
 ```sh
 python evaluate_ar.py --tasks hellaswag,openbookqa,arc_easy,boolq,piqa,social_iqa,race,lambada_standard --model ar --model_args model_name=170,ckpt_path='models/ar-170M-100e18.safetensors'
@@ -151,6 +175,14 @@ python evaluate_ar.py --tasks hellaswag,openbookqa,arc_easy,boolq,piqa,social_iq
 
 #### MDMs pretrained on the SlimPajama dataset
 We provide the running commands in `eval_mdm.sh`.
+
+
+### Math reasoning
+Please download the GSM8K test [data](https://github.com/hao-ai-lab/Consistency_LLM/blob/main/eval/gsm8k/test.jsonl)
+and put the `test.jsonl` into `./data/gsm8k`
+```angular2html
+python evaluate_gsm8k.py --ckpt_path "models/mdm-1028M-3300e18-rsl-gsm8k.safetensors"
+```
 
 
 ### Conditional generation
