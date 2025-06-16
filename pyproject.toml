@@ -1,0 +1,17 @@
+[project]
+name = "smdm"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "flash-attn>=2.8.0.post2",
+    "ninja>=1.11.1.4",
+    "torch>=2.7.1",
+    "torchaudio>=2.7.1",
+    "torchvision>=0.22.1",
+    "xformers",
+]
+
+[tool.uv.sources]
+xformers = { git = "https://github.com/facebookresearch/xformers.git" }
