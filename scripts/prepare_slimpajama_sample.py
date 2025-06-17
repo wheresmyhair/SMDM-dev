@@ -55,8 +55,8 @@ def prepare(
 if __name__ == "__main__":
     prepare(
         source_path="data/slimpajama_sample/raw/*",
-        tokenizer_path="Qwen/Qwen3-0.6B",
-        destination_path="data/slimpajama_sample/tokenized",
+        tokenizer_path="meta-llama/Llama-2-7b-chat-hf",
+        destination_path="data/slimpajama_sample/tokenized/llama2",
         chunk_size=2049 * 1024,
         split="train",
     )
