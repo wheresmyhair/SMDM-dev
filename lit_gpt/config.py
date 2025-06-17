@@ -86,12 +86,23 @@ class Config:
     def norm_class(self) -> Type:
         # `self._norm_class` cannot be the type to keep the config json serializable
         if self._norm_class == "RMSNorm":
-            from lit_gpt.rmsnorm import RMSNorm
+            from flash_attn.ops.triton.layer_norm import RMSNorm
+            
+            class OldRMSNorm(RMSNorm):
+                def __init__(self, *args, **kwargs):
+                    super().__init__(*args, **kwargs)
+                    
+                def forward(self, x: torch.Tensor) -> torch.Tensor:
+                    norm_x = torch.mean(x * x, dim=self.dim, keepdim=True)
+                    x_normed = x * torch.rsqrt(norm_x + self.eps)
+                    return self.weight * x_normed
 
-            return RMSNorm
+            return OldRMSNorm
+        
         elif self._norm_class == "FusedRMSNorm":
-            from lit_gpt.rmsnorm import FusedRMSNorm
-            return FusedRMSNorm
+            from flash_attn.ops.triton.layer_norm import RMSNorm
+            return RMSNorm
+        
         return getattr(torch.nn, self._norm_class)
 
 configs = []

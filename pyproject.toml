@@ -3,25 +3,29 @@ name = "smdm"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "accelerate>=1.7.0",
-    "flash-attn>=2.8.0.post2",
+    "flash-attn",
     "jsonargparse[signatures]>=4.40.0",
     "lightning[extra]>=2.5.1.post0",
     "ninja>=1.11.1.4",
     "pandas>=2.3.0",
     "pyarrow>=20.0.0",
+    "rotary-emb",
     "sentencepiece>=0.2.0",
     "tokenizers>=0.21.1",
-    "torch>=2.7.1",
-    "torchaudio>=2.7.1",
-    "torchvision>=0.22.1",
+    "torch==2.6.0",
+    "torchaudio",
+    "torchvision",
     "transformers>=4.52.4",
     "wandb>=0.20.1",
-    "xformers",
+    "xentropy-cuda-lib",
+    "xformers==0.0.29.post2",
     "zstandard>=0.23.0",
 ]
 
 [tool.uv.sources]
-xformers = { git = "https://github.com/facebookresearch/xformers.git" }
+flash-attn = { url = "https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu12torch2.6cxx11abiFALSE-cp312-cp312-linux_x86_64.whl" }
+rotary-emb = { path = "deps/rotary" }
+xentropy-cuda-lib = { path = "deps/xentropy" }

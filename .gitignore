@@ -2,3 +2,15 @@
 .env
 .venv
 .vscode
+
+# outputs
+out
+workdir
+
+# python
+*.egg-info
+
+# deps
+deps/rotary/build
+deps/layer_norm/build
+deps/xentropy/build

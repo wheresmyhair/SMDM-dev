@@ -48,7 +48,7 @@ model_para_config = {
 }
 
 # Hyperparameters
-num_of_devices = 8
+num_of_devices = 1
 global_batch_size = int(args.batch_size / args.nodes_num)
 learning_rate = 2e-4
 if args.model <= 20:
@@ -88,9 +88,13 @@ log_iter_interval = log_step_interval * gradient_accumulation_steps
 
 
 # Treat all dataset equally by their size. If you want to use a different weight for a dataset, add it to the list with the weight.
+
+# NOTE: make sure the data files match the config. 
+# Comment out the dataset that do not exist, even if the weight is 0. 
+# Otherwise, will trigger out of idx error when iterating the dataset.
 train_data_config = [
     ("train_slim", 1.0),
-    ("train_star", 0.),
+    # ("train_star", 0.),
 ]
 
 val_data_config = [
@@ -114,13 +118,14 @@ def forward_process(batch, total_dim=32000, eps=1e-3):
 
 
 def setup(
-    devices: int = 8,
-    train_data_dir: Path = Path("/dataset/slim_star_combined"),
-    val_data_dir: Path = Path("/dataset/slim_star_combined"),
+    devices: int = 1,
+    train_data_dir: Path = Path("data/slimpajama_sample/tokenized/llama2"),
+    val_data_dir: Path = Path("data/slimpajama_sample/tokenized/llama2"),
     precision: Optional[str] = None,
     tpu: bool = False,
     resume: Union[bool, Path] = True,
 ) -> None:
+    print('setting up...')
     global out_dir
     hp_name = f'mdm-{args.model}M-{args.flops}'
     out_dir = Path('workdir/scaling_debug') / hp_name
@@ -158,6 +163,7 @@ def main(fabric, train_data_dir, val_data_dir, resume):
 
     config = Config.from_name(model_name)
 
+    print('creating dataloaders...')
     train_dataloader, val_dataloader = create_dataloaders(
         batch_size=micro_batch_size,
         block_size=config.block_size,
@@ -213,6 +219,7 @@ def main(fabric, train_data_dir, val_data_dir, resume):
 
 
 def train(fabric, state, train_dataloader, val_dataloader, monitor, resume):
+    print('start training...')
     model = state["model"]
     optimizer = state["optimizer"]
 
@@ -357,7 +364,14 @@ def validate(fabric: L.Fabric, model: torch.nn.Module, val_dataloader: DataLoade
 
 
 def create_dataloader(
-    batch_size: int, block_size: int, data_dir: Path, fabric, shuffle: bool = True, seed: int = 12345, split="train"
+    batch_size: int, 
+    block_size: int, 
+    data_dir: Path, 
+    fabric, 
+    shuffle: bool = True, 
+    seed: int = 12345, 
+    split="train",
+    n_chunks: int = 8
 ) -> DataLoader:
     datasets = []
     data_config = train_data_config if split == "train" else val_data_config
@@ -398,12 +412,13 @@ def create_dataloaders(
     batch_size: int,
     block_size: int,
     fabric,
-    train_data_dir: Path = Path("data/redpajama_sample"),
+    train_data_dir: Path,
     val_data_dir: Optional[Path] = None,
     seed: int = 12345,
 ) -> Tuple[DataLoader, DataLoader]:
     # Increase by one because we need the next word as well
     effective_block_size = block_size + 1
+    print('creating train dataloader...')
     train_dataloader = create_dataloader(
         batch_size=batch_size,
         block_size=effective_block_size,
@@ -413,6 +428,7 @@ def create_dataloaders(
         seed=seed,
         split="train"
     )
+    print('creating val dataloader...')
     val_dataloader = (
         create_dataloader(
             batch_size=batch_size,
