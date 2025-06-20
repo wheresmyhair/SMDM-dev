@@ -5,7 +5,7 @@
 
 ```bash
 pip install uv
-uv sync
+uv sync --no-build-isolation
 ```
 
 ## Preprocess data
