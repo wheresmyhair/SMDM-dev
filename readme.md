@@ -5,7 +5,9 @@
 
 ```bash
 pip install uv
+uv venv
 uv sync --no-build-isolation
+source .venv/bin/activate
 ```
 
 ## Preprocess data
